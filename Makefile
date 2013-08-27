@@ -1,7 +1,7 @@
 CC=gcc
-CFLAGS=-O0 -I . -l bcm2835 -std=c99 -g
-DEPS = main.h
-OBJ = main.o 
+CFLAGS=-O3 -I . -l bcm2835 -std=c99 -g
+DEPS = main.h lpd6803.h
+OBJ = main.o lpd6803.o
 
 %.o: %.c $(DEPS)
 	$(CC) -c -o $@ $< $(CFLAGS)
