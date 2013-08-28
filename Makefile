@@ -1,5 +1,5 @@
 CC=gcc
-CFLAGS=-O3 -I . -l bcm2835 -std=c99 -g
+CFLAGS=-O3 -I . -l bcm2835 -lm -std=c99 -g
 DEPS = main.h lpd6803.h
 OBJ = main.o lpd6803.o
 

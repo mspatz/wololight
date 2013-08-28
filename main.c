@@ -12,9 +12,9 @@ int main(int argc, char **argv)
     {
       for(uint8_t i = 0;i<NUMPIXELS;i++)
 	{
-	  if(i == j)
+	  if(1)
 	    {
-	      setPixel(0x00,0x00,0xFF,buffer + i);
+	      setPixelHSV(fmod((float)(j)/(float)NUMPIXELS,1)*360,1,1,buffer + i);
 	    }
 	  else
 	    {
@@ -24,7 +24,7 @@ int main(int argc, char **argv)
       j++;
       if(j>=NUMPIXELS) j = 0;
       sendFrame(buffer,NUMPIXELS);
-      usleep(1000);
+      usleep(50000);
    }  
 
 
