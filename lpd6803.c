@@ -13,7 +13,7 @@ int spiInit(void)
   bcm2835_spi_begin();
   bcm2835_spi_setBitOrder(BCM2835_SPI_BIT_ORDER_MSBFIRST);      // Has no effect
   bcm2835_spi_setDataMode(BCM2835_SPI_MODE0);                   // The default
-  bcm2835_spi_setClockDivider(BCM2835_SPI_CLOCK_DIVIDER_32);    // The default
+  bcm2835_spi_setClockDivider(BCM2835_SPI_CLOCK_DIVIDER_64);    // The default
   bcm2835_spi_chipSelect(BCM2835_SPI_CS0);                      // The default
   bcm2835_spi_setChipSelectPolarity(BCM2835_SPI_CS0, LOW);      // the default
   // Send a byte to the slave and simultaneously read a byte back from the slave
@@ -32,8 +32,8 @@ void spiDeinit(void)
 
 void setPixel(uint8_t red, uint8_t green, uint8_t blue, pixel_t *pixel)
 {
-  *pixel = 0x0080; //Set first bit, clear the rest
-  *pixel |= ((blue & 0x1F) << 2) + ((red & 0x18)>>3) + ((red & 7) << 13) + ((green & 0x1F)<<8); //build the pixel
+  *pixel = 0x8000; //Set first bit, clear the rest
+  *pixel |= ((red & 0x1F) << 10) + ((green & 0x1F)<<5) + ((blue & 0x1F)); //build the pixel
 }
 
 void setPixelHSV(float hue, float sat, uint8_t val, pixel_t *pixel)
@@ -89,7 +89,8 @@ void sendFrame(pixel_t *firstPixel, uint32_t numPixels)
   for(uint8_t i = 0; i < numPixels; i++)
     {
       pixel_t *pixelAddress = firstPixel + i;
-      bcm2835_spi_writenb((char*) pixelAddress,2); //Send out a pixel
+      bcm2835_spi_transfern((char*) pixelAddress+1,1); //Send out a pixel
+      bcm2835_spi_transfern((char*) pixelAddress,1);
     }
   bcm2835_spi_writenb( (char*) zeros,numStopBytes); //send out a zero bit for each pixel
 }

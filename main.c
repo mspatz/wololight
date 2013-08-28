@@ -14,7 +14,7 @@ int main(int argc, char **argv)
 	{
 	  if(1)
 	    {
-	      setPixelHSV(fmod((float)(j)/(float)NUMPIXELS,1)*360,1,1,buffer + i);
+	      setPixelHSV(fmod((float)(i+j)/(float)NUMPIXELS,1)*360,1,1,buffer + i);
 	    }
 	  else
 	    {
@@ -24,7 +24,7 @@ int main(int argc, char **argv)
       j++;
       if(j>=NUMPIXELS) j = 0;
       sendFrame(buffer,NUMPIXELS);
-      usleep(50000);
+      //usleep(100);
    }  
 
 
