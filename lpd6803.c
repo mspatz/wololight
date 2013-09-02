@@ -36,7 +36,7 @@ void setPixel(uint8_t red, uint8_t green, uint8_t blue, pixel_t *pixel)
   *pixel |= ((red & 0x1F) << 10) + ((green & 0x1F)<<5) + ((blue & 0x1F)); //build the pixel
 }
 
-void setPixelHSV(float hue, float sat, uint8_t val, pixel_t *pixel)
+void setPixelHSV(float hue, float sat, float val, pixel_t *pixel)
 {
   float C;
   float X;
