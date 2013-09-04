@@ -40,38 +40,43 @@ void setPixelHSV(float hue, float sat, float val, pixel_t *pixel)
 {
   float C;
   float X;
+  float M;
   uint8_t C5b;
   uint8_t X5b;
+  uint8_t M5b;
+
   C = val*sat;
+  M = val-C;
   hue /= 60;
   X = C*(1-fabs(fmod(hue,2)-1));
 
   C5b = (uint8_t)(C*31);
   X5b = (uint8_t)(X*31);
-  
+  M5b = (uint8_t)(M*31);
+
   if(0.0<=hue && hue<1.0) 
     {
-      setPixel(C5b,X5b,0,pixel);
+      setPixel(C5b+M5b,X5b+M5b,M5b,pixel);
     }
   else if(1.0<=hue && hue<2.0)
     {
-      setPixel(X5b,C5b,0,pixel);
+      setPixel(X5b+M5b,C5b+M5b,M5b,pixel);
     }
   else if(2.0<=hue && hue<3.0)
     {
-      setPixel(0,C5b,X5b,pixel);
+      setPixel(M5b,C5b+M5b,X5b+M5b,pixel);
     }
   else if(3.0<=hue && hue<4.0) 
     {
-      setPixel(0,X5b,C5b,pixel);
+      setPixel(M5b,X5b+M5b,C5b+M5b,pixel);
     }
   else if(4.0<=hue && hue<5.0)
     {
-      setPixel(X5b,0,C5b,pixel);
+      setPixel(X5b+M5b,M5b,C5b+M5b,pixel);
     }
   else if(5.0<=hue && hue<6.0)
     {
-      setPixel(C5b,0,X5b,pixel);
+      setPixel(C5b+M5b,M5b,X5b+M5b,pixel);
     }
   else
     {

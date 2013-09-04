@@ -21,11 +21,11 @@ void jack_shutdown (void *arg)
 
 static jack_default_audio_sample_t lowPass(jack_default_audio_sample_t x0)
 {
-  //Called at 1kHz, cutoff at 160Hz
+  //Called at 1kHz, cutoff at 120Hz
  static double xHist[3] = {0,0,0};
  static double yHist[3] = {0,0,0};
- const double bCoeffs[3] = { 0.145323883877042,0.290647767754085,0.145323883877042};
- const double aCoeffs[3] = {1.00000000000000, -0.671029090774096,0.252324626282266};
+ const double bCoeffs[3] = {0.468952844493525 ,0.937905688987051 ,0.468952844493525};
+ const double aCoeffs[3] = {1.000000000000000,-0.982405793108395,0.347665394851723};
 
  xHist[2] = xHist[1];
  xHist[1] = xHist[0];
@@ -40,16 +40,78 @@ static jack_default_audio_sample_t lowPass(jack_default_audio_sample_t x0)
 
 static jack_default_audio_sample_t envelopeFollow(jack_default_audio_sample_t sample)
 {
+  //rectify  then low pass with cutoff at 5Hz
  static double xHist[3] = {0,0,0};
  static double yHist[3] = {0,0,0};
- const double bCoeffs[3] = { .000155148423475721,.000310296846951441,.000155148423475721};
- const double aCoeffs[3] = {1.000000000000000,-1.964460580205232,0.965081173899135};
+ const double bCoeffs[3] = {0.000241359049041961,0.000482718098083923,0.000241359049041961};
+ const double aCoeffs[3] = {1.000000000000000,-1.955578240315035,0.956543676511203};
 
  sample = fabs(sample);
 
  xHist[2] = xHist[1];
  xHist[1] = xHist[0];
  xHist[0] = sample;
+ 
+ yHist[2] = yHist[1];
+ yHist[1] = yHist[0];
+ 
+ yHist[0] = bCoeffs[2]*xHist[2] + bCoeffs[1] * xHist[1] + bCoeffs[0]*xHist[0] - aCoeffs[2]*yHist[2] - aCoeffs[1]*yHist[1];
+ return (jack_default_audio_sample_t)yHist[0];
+}
+
+static jack_default_audio_sample_t highPass(jack_default_audio_sample_t x0)
+{
+  //Called at 1kHz, cutoff at 1Hz
+ static double xHist[3] = {0,0,0};
+ static double yHist[3] = {0,0,0};
+ const double bCoeffs[3] = {0.995566972017647,-1.991133944035294,0.995566972017647};
+ const double aCoeffs[3] = {1.000000000000000,-1.991114292201654,.991153595868935};
+
+ xHist[2] = xHist[1];
+ xHist[1] = xHist[0];
+ xHist[0] = x0;
+ 
+ yHist[2] = yHist[1];
+ yHist[1] = yHist[0];
+ 
+ yHist[0] = bCoeffs[2]*xHist[2] + bCoeffs[1] * xHist[1] + bCoeffs[0]*xHist[0] - aCoeffs[2]*yHist[2] - aCoeffs[1]*yHist[1];
+ return (jack_default_audio_sample_t)yHist[0];
+}
+
+static jack_default_audio_sample_t bandPass(jack_default_audio_sample_t x0)
+{
+ //Called at 1kHz, cutoffs at 110Hz and 190Hz
+ static double xHist[5] = {0,0,0};
+ static double yHist[5] = {0,0,0};
+ const double bCoeffs[5] = {0.046131802093313,0,-0.092263604186626,0,0.046131802093313};
+ const double aCoeffs[5] = {1.000000000000000,-2.007027835193962,2.338101932353617,-1.390239758870166,0.491812237222577};
+
+ xHist[4] = xHist[3];
+ xHist[3] = xHist[2];
+ xHist[2] = xHist[1];
+ xHist[1] = xHist[0];
+ xHist[0] = x0;
+ 
+ yHist[4] = yHist[3];
+ yHist[3] = yHist[2];
+ yHist[2] = yHist[1];
+ yHist[1] = yHist[0];
+ 
+ yHist[0] = bCoeffs[4]*xHist[4] + bCoeffs[3]*xHist[3] + bCoeffs[2]*xHist[2] + bCoeffs[1] * xHist[1] + bCoeffs[0]*xHist[0] - aCoeffs[4]*yHist[4] - aCoeffs[3]*yHist[3] - aCoeffs[2]*yHist[2] - aCoeffs[1]*yHist[1];
+ return (jack_default_audio_sample_t)yHist[0];
+}
+
+static jack_default_audio_sample_t bandStop(jack_default_audio_sample_t x0)
+{
+
+ static double xHist[3] = {0,0,0};
+ static double yHist[3] = {0,0,0};
+ const double bCoeffs[3] = {0.940809296181594,-1.752943756671321,0.940809296181594};
+ const double aCoeffs[3] = {1.000000000000000,-1.752943756671323,0.881618592363189};
+
+ xHist[2] = xHist[1];
+ xHist[1] = xHist[0];
+ xHist[0] = x0;
  
  yHist[2] = yHist[1];
  yHist[1] = yHist[0];
@@ -66,23 +128,23 @@ int process (jack_nframes_t nframes, void *arg)
  uint32_t level;
 
  jack_default_audio_sample_t *in = (jack_default_audio_sample_t *) jack_port_get_buffer (input_port, nframes);
- jack_default_audio_sample_t lowPassed;
+ jack_default_audio_sample_t val;
+ jack_default_audio_sample_t accum;
  jack_nframes_t frm;
 
  
   for (frm = 0; frm < nframes; frm++)
     {
+      accum += *in++;
       if(count++==48)
 	{
-	  lowPassed = lowPass(*in++);
-	  *messenger = envelopeFollow(lowPassed);
-	  /* level = (uint32_t)50*fabs(envelope*50); */
-	  /* for(uint32_t i = 0; i < level; i++) */
-	  /*   { */
-	  /*     printf("."); */
-	  /*   } */
-	  /* printf("\n"); */
+	  val = accum/48;
+	  accum = 0;
 	  count = 0;
+	  val = bandPass(val);
+	  val = envelopeFollow(val);
+	  val = highPass(val);
+	  *messenger = val;
 	}
     }
 
