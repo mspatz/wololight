@@ -40,7 +40,7 @@ int main(int argc, char **argv)
 	  lastPeak.timestamp = timestamp;
 	  lastPeak.level = val;
 	}
-      else if (timestamp - lastPeak.timestamp >= 5 && lastPeak.level > .00012)
+      else if (timestamp - lastPeak.timestamp >= 10 && lastPeak.level > .00013)
 	{
 	  // printf("reducing threshold\n");
 	  lastPeak.level *= .999723;

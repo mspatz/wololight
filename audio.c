@@ -43,8 +43,8 @@ static jack_default_audio_sample_t envelopeFollow(jack_default_audio_sample_t sa
   //rectify  then low pass with cutoff at 5Hz
  static double xHist[3] = {0,0,0};
  static double yHist[3] = {0,0,0};
- const double bCoeffs[3] = {0.000241359049041961,0.000482718098083923,0.000241359049041961};
- const double aCoeffs[3] = {1.000000000000000,-1.955578240315035,0.956543676511203};
+ const double bCoeffs[3] = {0.000537169774812,0.001074339549624,0.000537169774812};
+ const double aCoeffs[3] = { 1.000000000000000,-1.933380225879930,0.935528904979178};
 
  sample = fabs(sample);
 
