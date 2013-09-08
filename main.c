@@ -17,7 +17,7 @@ int main(int argc, char **argv)
   int pid;
   messenger = mmap(NULL,sizeof(float),PROT_WRITE|PROT_READ,MAP_SHARED|MAP_ANONYMOUS,-1,0);
   time_t timestamp;
-  peak_t lastPeak = {0,0};
+  peak_t lastPeak = {0,.00013};
 
   pid = fork();
   if(pid == 0)//child
@@ -51,7 +51,8 @@ int main(int argc, char **argv)
 
       if(val > 1.0) val = 1.0;
       else if(val < 0) val = 0;
-
+      
+      val = 1;
       for(uint8_t i = 0;i<NUMPIXELS;i++)
 	{
 	  if(1)
